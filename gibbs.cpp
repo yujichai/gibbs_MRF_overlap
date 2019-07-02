@@ -15,7 +15,7 @@
 #include <vector>
 #include <random>
 #include <stdio.h>
-#include "include/fpml/fixed_point.h"
+#include "include/fixed_point.h"
 
 
 using namespace fpml;
