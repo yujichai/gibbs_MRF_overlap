@@ -1048,7 +1048,9 @@ int main(int argc, char *argv[])
 		//s = "output/SDR_FPGA_FP/graph_overlap_" + to_string((float)beta) + "_" + to_string((float)lambda) + "_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
 	} 
 	else if (HW == 0){
-		s = "output/graph_overlap_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
+		// s = "output/graph_overlap_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
+        sprintf (buffer, "output/SDR_CPU/graph_overlap_%g_%g_%d_%d_%d_%d.txt", beta, lambda, em_iter, gibbs_iter, step, (run+1));
+        s = buffer;
 	}
     else if(HW == 2) {
         // s = "output/graph_overlap_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
