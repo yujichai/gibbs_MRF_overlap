@@ -2,8 +2,11 @@
 // 2014.08.12
 // Fixed-point Exponential Function
 
+#ifndef __exp_h__
+#define __exp_h__
+
 #include <iostream>
-#include "fixed_point.h"
+#include <fixed_point.h>
 #include <math.h>
 #include <vector>
 
@@ -124,3 +127,4 @@ int main()
     return 0;
 }
 
+#endif // __exp_h__

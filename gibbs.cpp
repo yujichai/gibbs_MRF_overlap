@@ -463,6 +463,227 @@ void GibbsSampling_c(std::vector<double> datacost, std::vector<double> smoothcos
 
 }
 
+void GibbsSampling_cn(std::vector<double> datacost, std::vector<double> smoothcost,
+        std::vector<double> &totalcost, std::vector<double> &label,
+        int gibbs_iter, int width, int height, int num_lbl,
+        double beta, double lambda, std::mt19937 &gen)
+{
+    std::vector<double> p(num_lbl, 0);
+    std::vector<double> p_sum(num_lbl, 0);
+    double sum_neighbors;
+    int north_label;
+    int west_label;
+    int east_label;
+    int south_label;
+    int new_label;
+    double tcost;
+    //double tcost_sum;
+    double psum;
+    double curr_uni_rand;
+    double adj_uni_rand;
+
+    fixed_point<unsigned int, 16, 16> beta_fp = beta;
+    fixed_point<unsigned int, 16, 16> lambda_fp = lambda;
+    std::vector<fixed_point<unsigned int, 8, 24>> p_fp(num_lbl, 0);
+    std::vector<fixed_point<unsigned int, 8, 24>> p_sum_fp(num_lbl, 0);
+    std::vector<fixed_point<unsigned int, 16, 16>> tcost_fp_v(num_lbl, 0);
+    fixed_point<unsigned int, 16, 16> sum_neighbors_fp;
+    fixed_point<unsigned int, 16, 16> tcost_fp;
+    fixed_point<unsigned int, 8, 24> psum_fp;
+    fixed_point<unsigned int, 16, 16> tcost_min_fp;
+    unsigned int curr_uni_rand_fp;
+    fixed_point<unsigned int, 8, 24> adj_uni_rand_fp;
+    fixed_point<unsigned int, 16, 16> dcost_fp;
+    int new_label_fp = 0;
+
+    double beta_fp_temp = beta_fp;
+    double tcost_fp_temp =0;
+    double rand_fp_temp = 0;
+    double psum_fp_temp = 0;
+
+    // Testing variables
+    int zero_cnt = 0;
+    int diff_cnt = 0;
+
+    north_label = 0;
+    west_label = 0;
+    east_label = 0;
+    south_label = 0;
+    new_label = 0;
+
+    int label0 =0;
+    int label1 =0;
+
+    std::uniform_real_distribution<double> dis(0.0, 1.0);
+
+    for(int g=0; g<gibbs_iter; g++)
+    {
+        for(int color=0; color<2; color++)
+        {
+            for(int w=0; w<width; w++)
+            {
+                for(int h=(color==w%2)?0:1; h<height; h=h+2)
+                {
+
+                    //cout << "Node: [" << h << "," << w << "]" << endl;
+                    // fetch nieghboring labels
+                    // need to check boundary conditions
+                    //tcost_sum = 0;
+                    psum = 0;
+                    curr_uni_rand = dis(gen);
+
+                    psum_fp = 0;
+                    curr_uni_rand_fp = curr_uni_rand * pow(2,32);
+
+                    for(int n=0; n<num_lbl; n++)
+                    {
+                        sum_neighbors = 0;
+                        tcost = 0;
+
+                        sum_neighbors_fp = 0;
+                        tcost_fp = 0;
+
+                        if (h>0)
+                        {
+                            north_label = label.at((h-1)*width+w);
+                            sum_neighbors += smoothcost.at(n*num_lbl+north_label);
+                        }
+                        if (w>0)
+                        {
+                            west_label = label.at(h*width+(w-1));
+                            sum_neighbors += smoothcost.at(n*num_lbl+west_label);
+                        }
+                        if (w<width-1)
+                        {
+                            east_label = label.at(h*width+(w+1));
+                            sum_neighbors += smoothcost.at(n*num_lbl+east_label);
+                        }
+                        if (h<height-1)
+                        {
+                            south_label = label.at(((h+1)*width)+w);
+                            sum_neighbors += smoothcost.at(n*num_lbl+south_label);
+                        }
+
+                        // there may be way to skip some computations
+                        tcost =
+                            datacost.at(h*width*num_lbl+(w*num_lbl)+n)
+                            + (lambda * sum_neighbors);
+
+                        // totalcost.at((h*width*num_lbl)+(w*num_lbl)+n) = tcost;
+
+                        p.at(n) = exp(-beta*tcost);
+                        //cout << "D(" << n << ")= " << datacost.at(h*width*num_lbl+(w*num_lbl)+n) << endl;
+                        //cout << "T(" << n << ")= " << tcost << endl;
+                        //cout << "P(" << n << ")= " << p.at(n) << endl;
+                        psum = psum  + p.at(n);
+                        p_sum.at(n) = psum;
+
+                        // Fixed point verion of finding p
+                        dcost_fp = datacost.at(h*width*num_lbl+(w*num_lbl)+n);
+                        sum_neighbors_fp = sum_neighbors;
+
+                        tcost_fp =
+                            dcost_fp
+                            + (lambda_fp * sum_neighbors_fp);
+
+                        totalcost.at((h*width*num_lbl)+(w*num_lbl)+n) = tcost_fp;
+
+                        if(n == 0) {
+                            tcost_min_fp = tcost_fp;
+                        } 
+                        else if(tcost_min_fp > tcost_fp) {
+                            tcost_min_fp = tcost_fp;
+                        }
+
+                        tcost_fp_v.at(n) = tcost_fp;
+
+
+                        // Test the fix point p
+                        //cout << "Label: " << n << endl;
+                        //cout << "tcost: " << tcost << endl;
+                        //cout << "tcost_fp: " << tcost_fp << endl;
+                        //cout << "psum: " << psum << endl;
+                        //cout << "psum_fp: " << psum_fp << endl;
+
+                    }
+
+                    for(int n=0; n<num_lbl; n++) {
+                        tcost_fp_temp = tcost_fp_v.at(n) - tcost_min_fp;
+
+                        p_fp.at(n) = exp(-beta_fp_temp*tcost_fp_temp);
+                        psum_fp = psum_fp  + p_fp.at(n);
+                        p_sum_fp.at(n) = psum_fp;
+                    }
+
+                    adj_uni_rand = curr_uni_rand * psum;
+                    //adj_uni_rand = 0.000000001;
+                    //adj_uni_rand = 0.5 * psum;
+                    //adj_uni_rand = 0.0078125;
+
+                    //cout << "P Sum: [" << p_sum.at(0) << "," << p_sum.at(1) << "]" << endl;
+                    //cout << "Random = " << adj_uni_rand << endl;
+
+                    for(int n=0; n<num_lbl; n++)
+                    {
+                        new_label = n;
+                        if (p_sum.at(n) > adj_uni_rand)
+                        {
+                            break;
+                        }
+                    }
+
+                    //cout << "New Label: " << new_label << endl;
+                    //if (new_label == 0)
+                    //    label0 ++;
+                    //else if (new_label ==1)
+                    //    label1 ++;
+
+                    // label.at(h*width+w) = new_label;
+
+
+                    // Fixed point verion of finding label
+                    rand_fp_temp = curr_uni_rand_fp;
+                    psum_fp_temp = psum_fp;
+                    adj_uni_rand_fp = rand_fp_temp * psum_fp_temp / pow(2,32);
+
+                    for(int n=0; n<num_lbl; n++)
+                    {
+                        new_label_fp = n;
+                        if(p_sum_fp.at(n) > adj_uni_rand_fp)
+                        {
+                            break;
+                        }
+                    }
+
+                    label.at(h*width+w) = new_label_fp;
+
+                    // Test the fix point label
+                    //cout << "curr_uni_rand: " << curr_uni_rand << endl;
+                    //cout << "rand_fp_temp/2^32: " << rand_fp_temp / pow(2,32) << endl;
+                    //cout << "psum: " << psum << endl;
+                    //cout << "psum_fp_temp: " << psum_fp_temp << endl;
+                    //cout << "adj_uni_rand: " << adj_uni_rand << endl;
+                    //cout << "adj_uni_rand_fp: " << adj_uni_rand_fp << endl;
+                    //cout << endl;
+
+                    if(double(adj_uni_rand_fp) == 0) {
+                        zero_cnt ++;
+                    }
+
+                    if(new_label_fp != new_label) {
+                        diff_cnt ++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Fixed point verion testing
+    cout << "Zero Count: " << zero_cnt << endl;
+    cout << "Difference Count: " << diff_cnt << endl;
+
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -696,14 +917,18 @@ int main(int argc, char *argv[])
             // p = exp(-B*E)
             // E = DC*lambda*SC
 
-        	if(HW == 1) {
-				GibbsSampling_c(local_dcosts, smoothcost, totalcost, local_labels,
-                    gibbs_iter, local_width, local_height, num_lbl, beta, lambda, gen);
-			} 
-			else if (HW == 0){
+        	if(HW == 0) {
 				GibbsSampling(local_dcosts, smoothcost, totalcost, local_labels,
                     gibbs_iter, local_width, local_height, num_lbl, beta, lambda, gen);
+			} 
+			else if (HW == 1) {
+				GibbsSampling_c(local_dcosts, smoothcost, totalcost, local_labels,
+                    gibbs_iter, local_width, local_height, num_lbl, beta, lambda, gen);
 			}
+            else if (HW == 2) {
+                GibbsSampling_cn(local_dcosts, smoothcost, totalcost, local_labels,
+                    gibbs_iter, local_width, local_height, num_lbl, beta, lambda, gen);
+            }
 
             // Update Gaussian parameters (source separation only)
             label_count[0] = 0;
@@ -825,6 +1050,12 @@ int main(int argc, char *argv[])
 	else if (HW == 0){
 		s = "output/graph_overlap_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
 	}
+    else if(HW == 2) {
+        // s = "output/graph_overlap_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
+        sprintf (buffer, "output/SDR_FPGA_FP_CN/graph_overlap_%g_%g_%d_%d_%d_%d.txt", beta, lambda, em_iter, gibbs_iter, step, (run+1));
+        s = buffer;
+        //s = "output/SDR_FPGA_FP/graph_overlap_" + to_string((float)beta) + "_" + to_string((float)lambda) + "_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
+    } 
    
     //s = "output/new_labels.txt";
 
