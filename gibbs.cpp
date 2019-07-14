@@ -396,7 +396,7 @@ void GibbsSampling_c(std::vector<double> datacost, std::vector<double> smoothcos
                         //cout << "psum: " << psum << endl;
                         //cout << "psum_fp: " << psum_fp << endl;
 
-                        ///*
+                        /*
                         if(psum_fp == (fixed_point<unsigned int, 8, 24>)0) {
                             cout << "Label: " << n << endl;
                             cout << "dcost_fp: " << dcost_fp << endl;
