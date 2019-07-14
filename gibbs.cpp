@@ -286,6 +286,7 @@ void GibbsSampling_c(std::vector<double> datacost, std::vector<double> smoothcos
 	fixed_point<unsigned int, 16, 16> dcost_fp;
 	int new_label_fp = 0;
 
+    double datacost_fp_temp = 0;
 	double beta_fp_temp = 0;
 	double tcost_fp_temp =0;
     double rand_fp_temp = 0;
@@ -369,7 +370,9 @@ void GibbsSampling_c(std::vector<double> datacost, std::vector<double> smoothcos
                         p_sum.at(n) = psum;
 
                         // Fixed point verion of finding p
-                        dcost_fp = datacost.at(h*width*num_lbl+(w*num_lbl)+n);
+                        datacost_fp_temp = datacost.at(h*width*num_lbl+(w*num_lbl)+n);
+
+                        dcost_fp = datacost_fp_temp;
                         sum_neighbors_fp = sum_neighbors;
 
                         tcost_fp =
@@ -387,10 +390,22 @@ void GibbsSampling_c(std::vector<double> datacost, std::vector<double> smoothcos
 
                         // Test the fix point p
                         //cout << "Label: " << n << endl;
+                        //cout << "dcost_fp: " << dcost_fp << endl;
                         //cout << "tcost: " << tcost << endl;
                         //cout << "tcost_fp: " << tcost_fp << endl;
                         //cout << "psum: " << psum << endl;
                         //cout << "psum_fp: " << psum_fp << endl;
+
+                        ///*
+                        if(psum_fp == (fixed_point<unsigned int, 8, 24>)0) {
+                            cout << "Label: " << n << endl;
+                            cout << "dcost_fp: " << dcost_fp << endl;
+                            cout << "tcost: " << tcost << endl;
+                            cout << "tcost_fp: " << tcost_fp << endl;
+                            cout << "psum: " << psum << endl;
+                            cout << "psum_fp: " << psum_fp << endl;
+                        }
+                        //*/
 
                     }
 
@@ -894,6 +909,10 @@ int main(int argc, char *argv[])
         double new_mean[2] = {0, 0};
         double new_vari[2] = {0, 0};
 
+        double dcost_cap = 15;
+        double dcost_diff = 0;
+        double dcost_diff_temp = 0;
+
         for (int e=0; e<em_iter; e++)
         {
             // update datacostgit clone https://glennko@bitbucket.org/glennko/ssgibbs-matlab.git
@@ -901,13 +920,32 @@ int main(int argc, char *argv[])
             {
                 for(int w=0; w<local_width; w++)
                 {
+                    dcost_diff = 0;
+
                     for(int n=0; n<num_lbl; n++)
                     {
                         local_dcosts.at((h*local_width+w)*num_lbl+n) =
                             (input_ild.at((h+s_h)*width+w) - mean[n]) *
                             (input_ild.at((h+s_h)*width+w) - mean[n]) /
                             (vari[n]);
+                        dcost_diff_temp = local_dcosts.at((h*local_width+w)*num_lbl+n) - dcost_cap;
+                        if(dcost_diff_temp > dcost_diff) {
+                            dcost_diff = dcost_diff_temp;
+                        }
+                        //cout << local_dcosts.at((h*local_width+w)*num_lbl+n) << " ";
                     }
+
+                    if(HW == 1 && dcost_diff > 0) {
+                        for(int n=0; n<num_lbl; n++){
+                            local_dcosts.at((h*local_width+w)*num_lbl+n) -= dcost_diff;
+                            if(local_dcosts.at((h*local_width+w)*num_lbl+n) < 0) {
+                                local_dcosts.at((h*local_width+w)*num_lbl+n) = 0;
+                            }
+                            //cout << local_dcosts.at((h*local_width+w)*num_lbl+n) << " ";
+                        }
+                    }
+
+                    //cout << endl;
                 }
             }
             //Dump3DVector(local_dcosts, local_width, local_height, num_lbl,"output/local_dcosts.txt");
