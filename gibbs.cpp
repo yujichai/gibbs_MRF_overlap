@@ -860,7 +860,7 @@ int main(int argc, char *argv[])
 
     int local_width;
     int local_height;
-    local_width  = 513;     // smallest power of 4 larger than 513
+    local_width  = width;     // smallest power of 4 larger than 513
     local_height = step;
     //int step = 1;
     int s_w = 0;
