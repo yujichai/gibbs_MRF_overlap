@@ -11,22 +11,22 @@ SRCS=gibbs.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 # Run-time variables
-EM = 10
-GS = 50
-BE = 5
-LD = 0.5
-ST = 125
-HW = 0
-RU = 1
-LO = 0
+EM = 4 # EM iteration
+GS = 50 # Gibbs iteration
+BE = 4 # Beta
+LD = 0.5 # Lambda
+ST = 125 # Tile width
+HW = 0 # Gibbs method to use
+RU = 1 # Number of runs 
+LO = 0 # Try for different Gibbs iterations or not.
 
 # CPU:
-# ./gibbs 4 100 4 0.5 125 0 1 0
-# ./gibbs 4 100 4 0.5 125 0 5 1
+# ./gibbs 4 50 4 0.5 125 0 1 0
+# ./gibbs 4 50 4 0.5 125 0 5 1
 
 # FPGA:
-# ./gibbs 4 100 4 0.5 24 1 1 0 
-# ./gibbs 4 100 4 0.5 24 1 5 1
+# ./gibbs 4 50 4 0.5 24 1 1 0 
+# ./gibbs 4 50 4 0.5 24 1 5 1
 
 all: gibbs
 

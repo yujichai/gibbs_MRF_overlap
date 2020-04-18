@@ -928,6 +928,9 @@ int main(int argc, char *argv[])
                             (input_ild.at((h+s_h)*width+w) - mean[n]) *
                             (input_ild.at((h+s_h)*width+w) - mean[n]) /
                             (vari[n]);
+
+                        // Find the maxium difference from the dcost cap to the current datacost. 
+                        // This maxium difference will be used for the hardware regulation.
                         dcost_diff_temp = local_dcosts.at((h*local_width+w)*num_lbl+n) - dcost_cap;
                         if(dcost_diff_temp > dcost_diff) {
                             dcost_diff = dcost_diff_temp;
@@ -935,6 +938,7 @@ int main(int argc, char *argv[])
                         //cout << local_dcosts.at((h*local_width+w)*num_lbl+n) << " ";
                     }
 
+                    // If this is the 
                     if(HW == 1 && dcost_diff > 0) {
                         for(int n=0; n<num_lbl; n++){
                             local_dcosts.at((h*local_width+w)*num_lbl+n) -= dcost_diff;
