@@ -605,7 +605,7 @@ void GibbsSampling_cn(std::vector<double> datacost, std::vector<double> smoothco
 
                         if(n == 0) {
                             tcost_min_fp = tcost_fp;
-                        } 
+                        }
                         else if(tcost_min_fp > tcost_fp) {
                             tcost_min_fp = tcost_fp;
                         }
@@ -710,7 +710,7 @@ int main(int argc, char *argv[])
     //cout << "b:" << b << endl;
 
     int width  = 513;
-    int height = 125;
+    int height = 327;
     int num_lbl = 2;
 
     if (argc != 9)
@@ -929,7 +929,7 @@ int main(int argc, char *argv[])
                             (input_ild.at((h+s_h)*width+w) - mean[n]) /
                             (vari[n]);
 
-                        // Find the maxium difference from the dcost cap to the current datacost. 
+                        // Find the maxium difference from the dcost cap to the current datacost.
                         // This maxium difference will be used for the hardware regulation.
                         dcost_diff_temp = local_dcosts.at((h*local_width+w)*num_lbl+n) - dcost_cap;
                         if(dcost_diff_temp > dcost_diff) {
@@ -938,7 +938,7 @@ int main(int argc, char *argv[])
                         //cout << local_dcosts.at((h*local_width+w)*num_lbl+n) << " ";
                     }
 
-                    // If this is the 
+                    // If this is the
                     if(HW == 1 && dcost_diff > 0) {
                         for(int n=0; n<num_lbl; n++){
                             local_dcosts.at((h*local_width+w)*num_lbl+n) -= dcost_diff;
@@ -962,7 +962,7 @@ int main(int argc, char *argv[])
         	if(HW == 0) {
 				GibbsSampling(local_dcosts, smoothcost, totalcost, local_labels,
                     gibbs_iter, local_width, local_height, num_lbl, beta, lambda, gen);
-			} 
+			}
 			else if (HW == 1) {
 				GibbsSampling_c(local_dcosts, smoothcost, totalcost, local_labels,
                     gibbs_iter, local_width, local_height, num_lbl, beta, lambda, gen);
@@ -1088,7 +1088,7 @@ int main(int argc, char *argv[])
 		sprintf (buffer, "output/labels_FPGA_FP/graph_overlap_%g_%g_%d_%d_%d_%d.txt", beta, lambda, em_iter, gibbs_iter, step, (run+1));
 		s = buffer;
 		//s = "output/SDR_FPGA_FP/graph_overlap_" + to_string((float)beta) + "_" + to_string((float)lambda) + "_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
-	} 
+	}
 	else if (HW == 0){
 		// s = "output/graph_overlap_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
         sprintf (buffer, "output/labels_CPU/graph_overlap_%g_%g_%d_%d_%d_%d.txt", beta, lambda, em_iter, gibbs_iter, step, (run+1));
@@ -1099,12 +1099,12 @@ int main(int argc, char *argv[])
         sprintf (buffer, "output/labels_FPGA_FP_CN/graph_overlap_%g_%g_%d_%d_%d_%d.txt", beta, lambda, em_iter, gibbs_iter, step, (run+1));
         s = buffer;
         //s = "output/SDR_FPGA_FP/graph_overlap_" + to_string((float)beta) + "_" + to_string((float)lambda) + "_" + to_string((int)em_iter) + "_" + to_string((int)gibbs_iter) + "_" + to_string((int)step) + "_" + to_string((int)(run+1)) + ".txt";
-    } 
-   
+    }
+
     //s = "output/new_labels.txt";
 
     Dump2DVector(global_labels, width, height, s.c_str());
-    //Dump2DVectorTranspose(global_labels, width, height, "output/new_labels_t.txt");
+    Dump2DVectorTranspose(global_labels, width, height, "output/new_labels_t.txt");
     }
 
     // Gibbs Iter Loop
