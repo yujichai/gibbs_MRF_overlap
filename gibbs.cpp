@@ -709,9 +709,9 @@ int main(int argc, char *argv[])
     //cout << "a:" << a << endl;
     //cout << "b:" << b << endl;
 
-    int width  = 513;
-    int height = 125;
-    int num_lbl = 2;
+    //int width  = 513;
+    //int height = 125;
+    //int num_lbl = 2;
 
     if (argc != 9)
     {
@@ -719,17 +719,23 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    int em_iter = atoi(argv[1]);
-    int gibbs_iter_tot = atoi(argv[2]);
-    double beta = atof(argv[3]);
-    double lambda = atof(argv[4]);
-    int step = atof(argv[5]);
-    int HW = atof(argv[6]);
-    int run_num = atof(argv[7]);
-    int loop = atof(argv[8]);
+    int width = atoi(argv[1]);
+    int height = atoi(argv[2]);
+    int num_lbl = atoi(argv[3]);
+    int em_iter = atoi(argv[4]);
+    int gibbs_iter_tot = atoi(argv[5]);
+    double beta = atof(argv[6]);
+    double lambda = atof(argv[7]);
+    int step = atof(argv[8]);
+    int HW = atof(argv[9]);
+    int run_num = atof(argv[10]);
+    int loop = atof(argv[11]);
 
 
     cout << "========================================" << endl;
+    cout << "MRF Width: " << width << endl;
+    cout << "MRF Height: " << height << endl;
+    cout << "Number of labels: " << num_lbl << endl;
     cout << "EM iter: " << em_iter << endl;
     cout << "Gibbs iter: " << gibbs_iter_tot << endl;
     cout << "Beta: " << beta << endl;
@@ -862,6 +868,9 @@ int main(int argc, char *argv[])
     int local_height;
     local_width  = width;     // smallest power of 4 larger than 513
     local_height = step;
+    if(HW == 0) {
+        local_height = height;
+    }
     //int step = 1;
     int s_w = 0;
     int s_h = 0;

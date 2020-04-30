@@ -10,10 +10,10 @@ This is the repo for the gibbs sampling on a MRF for sound source separation. Th
 
 # Standard commands to run the code:
 For CPU: 
-./gibbs 4 50 4 0.5 125 0 1 0
+./gibbs 513 125 2 4 50 4 0.5 125 0 1 0
 
 For hardware acclerator: 
-./gibbs 4 50 4 0.5 24 1 1 0 
+./gibbs 512 125 2 4 50 4 0.5 24 1 1 0 
 
 More details for each parameter are shown in the Makefile.
 
